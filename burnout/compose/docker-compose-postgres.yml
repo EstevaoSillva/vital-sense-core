@@ -1,0 +1,17 @@
+services:
+
+  postgres:
+    image: postgres:17
+    hostname: postgres
+    container_name: burnout-postgres
+    ports:
+      - 5434:5432
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=123456
+      - POSTGRES_DB=burnout
+    volumes:
+      - db-data:/var/lib/postgresql
+
+volumes:
+  db-data:
