@@ -1,63 +1,111 @@
-# Burnout Core
+# Vital Sense Core
 
-API Django para cadastro de colaboradores e inferência de risco de burnout.
+Backend Django/DRF para gestao de usuarios, colaboradores e empresas, com endpoints para autenticacao, acompanhamento de bem-estar e inferencia de risco relacionada a stress e burnout.
 
-## O que existe hoje
+O repositorio combina duas frentes:
 
-O projeto está dividido em dois fluxos:
+- API operacional em Django para mobile, administrativo e enterprise.
+- Codigo e artefatos de ML usados no fluxo legado de `burn-rate` e nos experimentos de stress com dados de wearable.
 
-1. Fluxo legado de `burn_rate`:
-   - treino offline de modelo tabular;
-   - inferência online em `POST /api/ml/burn-rate/predict/`.
-2. Novo pipeline de risco (MVP):
-   - ingestão de sinais fisiológicos do wearable;
-   - cálculo de score de stress;
-   - assessment composto de burnout;
-   - fusão final de risco com recomendação.
+## Visao Geral
+
+Hoje o projeto esta organizado em quatro apps principais:
+
+- `accounts`: usuario customizado, grupos e recuperacao de senha.
+- `employee`: cadastro do colaborador, perfil mobile, coletas de wearable, snapshots de stress, assessments de burnout, recomendacoes e endpoints do app mobile.
+- `enterprise`: cadastro e operacao da visao B2B, com empresa, dashboard corporativo, usuarios e grupos terapeuticos.
+- `core`: classes base compartilhadas.
+
+O projeto Django fica em `burnout/`, com configuracao central, settings e roteamento.
+
+## Estrutura Atual
+
+```text
+.
+├── burnout/                # Projeto Django (settings, urls, asgi, wsgi)
+├── accounts/               # Usuario customizado e autenticacao geral
+├── employee/               # Dominio principal de colaborador e APIs mobile/ML
+│   ├── management/commands/
+│   └── services/
+├── enterprise/             # APIs corporativas
+├── core/                   # ModelBase e utilitarios basicos
+├── ml/
+│   ├── burnout/            # Treino e inferencia do modelo legado/tabular
+│   └── stress/wesad/       # Estudos e exportacao para stress com wearable
+├── artifacts/              # Modelos exportados e metadados versionados
+├── compose/                # Docker Compose para Postgres e MinIO
+├── docs/                   # Documentacao tecnica complementar
+├── manage.py
+├── requirements.txt
+└── burnout.conf            # Variaveis de ambiente
+```
+
+## Componentes Relevantes
+
+### API Django
+
+- `burnout/settings.py`: configuracao de banco, JWT, DRF, throttle e carregamento de `.env`.
+- `burnout/urls.py`: roteador principal da API.
+- `manage.py`: entrypoint padrao do Django.
+
+### Dominio e regras
+
+- `accounts/models.py`: modelo `User` customizado (`AUTH_USER_MODEL = accounts.User`).
+- `employee/models.py`: entidades de colaborador, perfil, dispositivo, amostras de wearable, stress, burnout, recomendacoes, artigos e notificacoes.
+- `enterprise/models.py`: empresa, perfil comercial e grupos terapeuticos.
+- `employee/services/risk_pipeline.py`: heuristicas atuais para score de stress, score composto de burnout e consolidacao do risco final.
+
+### Machine Learning
+
+- `ml/burnout/predictor.py`: inferencia do fluxo legado de `burn-rate`.
+- `ml/burnout/train_and_export.py`: treino/export do modelo tabular de burnout.
+- `ml/stress/wesad/train_wesad_ml.py`: treino experimental com dataset WESAD.
+- `ml/stress/wesad/export_tflite.py`: exportacao para TFLite do pipeline de stress.
+- `artifacts/burn_rate/`: modelos versionados em `joblib` com `metadata.json`.
+
+### Operacao e suporte
+
+- `compose/docker-compose-postgres.yml`: banco local PostgreSQL na porta `5434`.
+- `compose/docker-compose-minio.yml`: MinIO opcional para armazenamento S3-compat.
+- `employee/management/commands/import_employees.py`: importa colaboradores a partir de CSV.
 
 ## Stack
 
 - Python 3.11+
 - Django 4.2
 - Django REST Framework
+- Simple JWT
 - PostgreSQL
-- Scikit-learn (modelo legado)
-- PyTorch (treino de stress em `ml/stress`)
+- django-filter
+- boto3 / django-storages
+- scikit-learn, XGBoost
+- PyTorch e TensorFlow para experimentos de ML
 
-## Estrutura principal
-
-- Projeto Django: `burnout/`
-- App principal: `burnout/tech_employee/`
-- Treino burnout legado: `burnout/tech_employee/ml/burnout/train_and_export.py`
-- Inferência burnout legado: `burnout/tech_employee/ml/burnout/predictor.py`
-- Pipeline de risco: `burnout/tech_employee/services/risk_pipeline.py`
-- Treino stress/WESAD: `burnout/tech_employee/ml/stress/wesad/`
-
-## Configuração do ambiente
+## Configuracao do Ambiente
 
 ### 1. Criar ambiente virtual
 
 ```bash
-cd burnout
 python3 -m venv .venv
 source .venv/bin/activate
 ```
 
-### 2. Instalar dependências
+### 2. Instalar dependencias
 
 ```bash
 pip install -U pip
 pip install -r requirements.txt
 ```
 
-### 3. Configurar variáveis de ambiente (`burnout.conf`)
+### 3. Configurar variaveis de ambiente
 
-O projeto tenta carregar automaticamente:
+O projeto tenta carregar variaveis a partir destes caminhos, nesta ordem:
 
-- `burnout/burnout.conf`
-- `../burnout.conf` (raiz do repositório)
+- arquivo definido em `BURNOUT_ENV_FILE`
+- `./burnout.conf`
+- `../burnout.conf`
 
-Exemplo mínimo:
+Exemplo minimo:
 
 ```env
 DB_ENGINE=django.db.backends.postgresql
@@ -67,279 +115,209 @@ DB_NAME=burnout
 DB_USER=postgres
 DB_PASS=123456
 
-DEBUG=True
-
 ACCESS_TOKEN_LIFETIME_IN_MINUTES=360
 REFRESH_TOKEN_LIFETIME_IN_DAYS=7
 
-# Modelo legado de burn rate
-BURN_RATE_MODEL_VERSION=gb-eval-v5
-```
+REQUEST_PER_MINUTES=60
+STRESS_RUNTIME_STRATEGY=heuristic
 
-Exemplo opcional (MinIO/S3):
-
-```env
 AWS_S3_ACCESS_KEY_ID=minioadmin
 AWS_S3_SECRET_ACCESS_KEY=minioadmin
 AWS_STORAGE_BUCKET_NAME=burnout
 AWS_S3_ENDPOINT_URL=http://localhost:9000
 ```
 
-## Como executar a API
+Observacoes:
 
-### 1. Criar/aplicar migrações
+- `DEBUG` esta fixado como `True` em `burnout/settings.py`.
+- O banco depende integralmente das variaveis `DB_*`; nao ha fallback para SQLite.
+- O runtime atual de stress usa estrategia heuristica; qualquer valor diferente em `STRESS_RUNTIME_STRATEGY` cai em fallback para `heuristic`.
+
+## Subindo a Infra Local
+
+### PostgreSQL
 
 ```bash
-cd burnout
-python manage.py makemigrations
+docker compose -f compose/docker-compose-postgres.yml up -d
+```
+
+### MinIO opcional
+
+```bash
+docker compose -f compose/docker-compose-minio.yml up -d
+```
+
+## Executando o Projeto
+
+### 1. Aplicar migracoes
+
+```bash
 python manage.py migrate
 ```
 
-### 2. (Opcional) Criar usuário admin
+### 2. Criar superusuario opcional
 
 ```bash
 python manage.py createsuperuser
 ```
 
-### 3. Validar o projeto
+### 3. Validar configuracao
 
 ```bash
 python manage.py check
 ```
 
-### 4. Subir o servidor
+### 4. Subir servidor
 
 ```bash
 python manage.py runserver 0.0.0.0:8000
 ```
 
-Base local: `http://localhost:8000/api/`
+Base local da API: `http://localhost:8000/api/`
 
-## Endpoints
+## Mapa de Rotas
 
-### Autenticação de usuários (base em `accounts.User`)
+### Autenticacao e contas
 
-#### 1) `POST /api/users/register/`
+- `POST /api/users/register/`
+- `POST /api/users/login/`
+- `GET|POST|PUT|PATCH|DELETE /api/users/`
+- `GET|POST|PUT|PATCH|DELETE /api/user-groups/`
+- `GET|POST|PUT|PATCH|DELETE /api/recovery-passwords/`
+- `POST /api/auth/token/`
+- `POST /api/auth/token/refresh/`
+- `POST /api/auth/token/verify/`
+- `GET /api/auth/login/` e afins via DRF browsable auth
 
-Cria um usuário geral na plataforma (independente de employee).
+### Employee e mobile
 
-Payload:
+- `POST /api/employees/login/`
+- `GET|POST|PUT|PATCH|DELETE /api/employees/`
+- `GET /api/dashboard/summary`
+- `GET /api/profile`
+- `GET /api/sync/status`
+- `GET /api/history/collections`
+- `GET /api/history/collections/<collection_id>`
+- `GET /api/insights`
+- `GET /api/recommendations`
+- `GET /api/content/articles`
+- `GET /api/content/articles/<article_id>`
+- `GET /api/notifications`
 
-```json
-{
-  "username": "user.demo",
-  "password": "SenhaSegura123",
-  "email": "user.demo@acme.com",
-  "name": "User Demo"
-}
-```
+### ML e risco
 
-#### 2) `POST /api/users/login/`
+- `POST /api/ml/burn-rate/predict/`
+- `POST /api/ml/stress/wearable/events/`
+- `GET /api/ml/burnout/assessment/questions/`
+- `POST /api/ml/burnout/assessment/`
+- `POST /api/ml/risk/inference/`
 
-Login geral por `username + password`.
+### Enterprise
 
-Payload:
+- `POST /api/enterprise/signup/`
+- `GET|POST|PATCH /api/enterprise/company/`
+- `GET /api/enterprise/dashboard/`
+- `GET|POST /api/enterprise/users/`
+- `GET /api/enterprise/recommendations/`
+- `GET|POST /api/enterprise/therapy-groups/`
 
-```json
-{
-  "username": "user.demo",
-  "password": "SenhaSegura123"
-}
-```
+## Fluxos de Negocio Atuais
 
-### Autenticação de employee
+### 1. Fluxo legado de burn-rate
 
-#### 1) `POST /api/employees/register/`
+Endpoint exposto em `POST /api/ml/burn-rate/predict/`.
 
-Vincula credencial de login ao `employee_id` existente e cria o `User` correspondente.
+Esse fluxo usa `ml/burnout/predictor.py` e carrega artefatos em `artifacts/burn_rate/`. A API devolve:
 
-Payload:
+- predicao central
+- faixa inferior e superior
+- nivel de risco
+- versao do modelo
+- metadados de fallback e out-of-distribution quando aplicavel
 
-```json
-{
-  "employee_id": "550e8400-e29b-41d4-a716-446655440000",
-  "password": "SenhaSegura123"
-}
-```
+### 2. Ingestao de wearable e stress
 
-#### 2) `POST /api/employees/login/`
+Endpoint exposto em `POST /api/ml/stress/wearable/events/`.
 
-Login de employee por `employee_id + password` com retorno de `access` e `refresh`.
+O payload recebe `device_id` e uma lista de amostras (`samples`) com:
 
-Payload:
+- `sensor_type`
+- `recorded_at`
+- `value`
+- `unit`
+- `quality`
+- `payload`
 
-```json
-{
-  "employee_id": "550e8400-e29b-41d4-a716-446655440000",
-  "password": "SenhaSegura123"
-}
-```
+As leituras geram:
 
-### Fluxo legado: Burn Rate
+- persistencia em `WearableSample`
+- agregacao heuristica via `compute_stress_window`
+- criacao de `StressInferenceSnapshot`
+- sinalizacao de `trigger_recommended` quando a janela ultrapassa limiares
 
-#### `POST /api/ml/burn-rate/predict/`
+### 3. Assessment de burnout
 
-Payload:
+O questionario fica exposto em `GET /api/ml/burnout/assessment/questions/` e a submissao em `POST /api/ml/burnout/assessment/`.
 
-```json
-{
-  "gender": "0",
-  "company_type": "0",
-  "wfh_setup_available": false,
-  "designation": 1,
-  "resource_allocation": 6,
-  "work_hours_per_week": 42,
-  "sleep_hours": 7.0,
-  "work_life_balance_score": 2,
-  "manager_support_score": 2,
-  "deadline_pressure_score": 5,
-  "team_size": 8,
-  "recognition_frequency": 1
-}
-```
+O calculo atual considera principalmente:
 
-`curl`:
+- `exhaustion_score`
+- `cynicism_score`
+- `efficacy_score`
+- `work_life_balance_score`
+- `manager_support_score`
+- `deadline_pressure_score`
 
-```bash
-curl -X POST "http://localhost:8000/api/ml/burn-rate/predict/" \
-  -H "Content-Type: application/json" \
-  -d '{"gender":"0","company_type":"0","wfh_setup_available":false,"designation":1,"resource_allocation":6,"work_hours_per_week":42,"sleep_hours":7.0,"work_life_balance_score":2,"manager_support_score":2,"deadline_pressure_score":5,"team_size":8,"recognition_frequency":1}'
-```
+O score composto e calculado em `employee/services/risk_pipeline.py`.
 
----
+### 4. Inferencia final de risco
 
-### Novo pipeline: risco combinado
+Endpoint exposto em `POST /api/ml/risk/inference/`.
 
-Todos os endpoints abaixo exigem `Authorization: Bearer <access_token>`.
+O consolidado combina:
 
-#### 1) `POST /api/ml/stress/wearable/events/`
+- stress de wearable, quando existir
+- burnout assessment, quando existir
 
-Ingestão de dados fisiológicos em lote curto.
+Modos de inferencia atuais:
 
-Payload:
+- `hybrid`
+- `assessment_only`
+- `wearable_only`
 
-```json
-{
-  "employee_id": "550e8400-e29b-41d4-a716-446655440000",
-  "device_id": "watch-001",
-  "samples": [
-    {"sensor_type": "hr", "recorded_at": "2026-02-15T10:00:00Z", "value": 96, "unit": "bpm", "quality": 0.92},
-    {"sensor_type": "eda", "recorded_at": "2026-02-15T10:00:02Z", "value": 2.8, "unit": "uS", "quality": 0.88},
-    {"sensor_type": "temp", "recorded_at": "2026-02-15T10:00:03Z", "value": 34.2, "unit": "C", "quality": 0.90},
-    {"sensor_type": "hrv", "recorded_at": "2026-02-15T10:00:04Z", "value": 35, "unit": "ms", "quality": 0.80}
-  ]
-}
-```
+## Comandos Uteis
 
-Retorno principal: `stress_score`, `stress_risk`, `trigger_recommended`.
-
-#### 2) `POST /api/ml/burnout/assessment/`
-
-Assessment composto (evita depender apenas de `burn_rate` autodeclarado).
-
-Payload:
-
-```json
-{
-  "employee_id": "550e8400-e29b-41d4-a716-446655440000",
-  "source": "triggered",
-  "exhaustion_score": 4,
-  "cynicism_score": 3,
-  "efficacy_score": 2,
-  "work_life_balance_score": 2,
-  "manager_support_score": 2,
-  "deadline_pressure_score": 4,
-  "sleep_hours": 5.5,
-  "work_hours_per_week": 52,
-  "notes": "assessment apos trigger de stress"
-}
-```
-
-Retorno principal: `composite_score`, `risk_level`, `factors`.
-
-#### 3) `POST /api/ml/risk/inference/`
-
-Fusão final de risco entre stress e burnout.
-
-Payload mínimo (usa últimos registros salvos):
-
-```json
-{
-  "employee_id": "550e8400-e29b-41d4-a716-446655440000",
-  "context": {"channel": "mobile-app"}
-}
-```
-
-Retorno principal: `final_score`, `risk_level`, `recommendation`.
-
-## Melhorias implementadas nesta fase
-
-1. Novos modelos de dados para pipeline clínico-operacional:
-   - `WearableSample`
-   - `StressInferenceSnapshot`
-   - `BurnoutAssessment`
-   - `RiskTriageDecision`
-2. Novos endpoints REST para ingestão, avaliação e fusão de risco.
-3. Novo serviço de pipeline em `risk_pipeline.py` com:
-   - score heurístico inicial de stress;
-   - score composto de burnout;
-   - regra de fusão de risco final.
-4. Admin Django atualizado para monitorar os dados novos.
-5. Treino de burnout com estratégias de alvo:
-   - `reported`
-   - `composite`
-
-## Documentacao adicional
-
-- Estrategia de fallback do pipeline de risco: `burnout/docs/risk-inference-fallback.md`
-   - `hybrid` (padrão)
-
-## Treino offline do modelo legado de Burn Rate
-
-Script: `burnout/tech_employee/ml/burnout/train_and_export.py`
-
-### Treino base
+### Importar colaboradores por CSV
 
 ```bash
-cd burnout
-python employee/ml/burnout/train_and_export.py \
-  --data employee/ml/burnout/employeedataset.csv \
-  --out-dir artifacts/burn_rate/gb-eval-v6 \
-  --version gb-eval-v6 \
-  --target-strategy hybrid
+python manage.py import_employees --csv /caminho/arquivo.csv
 ```
 
-### Treino com tuning
+Opcoes relevantes:
 
-```bash
-python employee/ml/burnout/train_and_export.py \
-  --out-dir artifacts/burn_rate/gb-eval-v6-tuned \
-  --version gb-eval-v6-tuned \
-  --target-strategy hybrid \
-  --tune-mid \
-  --n-iter 25
-```
+- `--clear`
+- `--default-password`
+- `--username-prefix`
 
-### Artefatos gerados
+## Documentacao Complementar
 
-- `model_mid.joblib`
-- `model_q10.joblib`
-- `model_q90.joblib`
-- `metadata.json`
-- `feature_importance.csv`
-- `feature_importance.png` (se `matplotlib` estiver disponível)
+Arquivos de apoio em `docs/`:
 
-## Observações
+- `docs/mobile-endpoints-sdd.md`
+- `docs/assessment-burn-rate-sdd.md`
+- `docs/risk-inference-fallback.md`
+- `docs/ml-auditoria.md`
+- `docs/ml-fase1-execucao.md`
+- `docs/ml-proximas-fases.md`
 
-- A inferência online de stress no backend está em modo heurístico inicial.
-- O material de PyTorch/WESAD já está no repositório e é a base para a próxima etapa de integração real-time.
-- A API não treina modelos em runtime.
+Tambem ha materiais auxiliares como:
 
-## Troubleshooting rápido
+- `architecture_workflow.md`
+- `ml/stress/wesad/README.md`
+- `ml/burnout/TRAINING.md`
 
-- `ModuleNotFoundError: django`:
-  - ative o ambiente virtual e reinstale dependências.
-- erro de conexão com banco:
-  - valide `DB_ENGINE`, `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASS`.
-- resposta com `model_version = heuristic-v1` no endpoint legado:
-  - artefatos `.joblib` não foram encontrados/carregados.
+## Observacoes Importantes
+
+- O README anterior descrevia uma estrutura que nao corresponde mais ao layout atual do repositorio; este documento foi alinhado ao codigo presente na raiz do projeto.
+- As rotas sob `employee` usam autenticacao JWT em boa parte dos endpoints; login e predicao legada de `burn-rate` sao publicos.
+- Existem muitos artefatos e datasets grandes no repositorio e no `git status`; qualquer limpeza ou reorganizacao desses arquivos deve ser tratada separadamente da API.
