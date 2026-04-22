@@ -4,8 +4,8 @@ from rest_framework import serializers
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from employee.models import EmployeeRecord
-from organizations.models import Enterprise
-from organizations.serializers import EnterpriseLookupSerializer
+from enterprise.models import Enterprise
+from enterprise.serializers import EnterpriseLookupSerializer
 
 from .models import AccountUserGroup, RecoveryPassword, User
 

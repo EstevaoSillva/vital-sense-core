@@ -17,7 +17,7 @@ class EmployeeRecord(ModelBase):
         help_text="Usuario autenticado associado ao colaborador.",
     )
     enterprise = models.ForeignKey(
-        "organizations.Enterprise",
+        "enterprise.Enterprise",
         db_column="id_enterprise",
         related_name="employees",
         on_delete=models.PROTECT,

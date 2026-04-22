@@ -4,7 +4,7 @@ from rest_framework import status
 from rest_framework.test import APITestCase
 
 from employee.models import EmployeeRecord
-from organizations.models import Enterprise
+from enterprise.models import Enterprise
 
 User = get_user_model()
 

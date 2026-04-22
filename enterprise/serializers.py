@@ -5,9 +5,7 @@ from rest_framework import serializers
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from employee.models import EmployeeProfile, EmployeeRecord
-from organizations.models import Enterprise
-
-from .models import EnterpriseCommercialProfile, TherapyGroup, TherapyGroupMember
+from .models import Enterprise, EnterpriseCommercialProfile, TherapyGroup, TherapyGroupMember
 
 User = get_user_model()
 
@@ -20,6 +18,12 @@ def unique_username(seed: str) -> str:
         suffix += 1
         candidate = f"{base}.{suffix}"[:64]
     return candidate
+
+
+class EnterpriseLookupSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Enterprise
+        fields = ("id", "name", "code", "kind")
 
 
 def enterprise_payload(enterprise: Enterprise | None) -> dict | None:

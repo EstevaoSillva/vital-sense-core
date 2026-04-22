@@ -5,9 +5,48 @@ from simple_history.models import HistoricalRecords
 from core.models import ModelBase
 
 
+class Enterprise(ModelBase):
+    class Kind(models.TextChoices):
+        COMPANY = "company", "Company"
+        NGO = "ngo", "NGO"
+        GOVERNMENT = "government", "Government"
+        EDUCATION = "education", "Education"
+
+    name = models.CharField(
+        db_column="tx_name",
+        max_length=255,
+        verbose_name="Name",
+    )
+    code = models.CharField(
+        db_column="tx_code",
+        max_length=100,
+        verbose_name="Code",
+    )
+    kind = models.CharField(
+        db_column="tx_kind",
+        max_length=32,
+        choices=Kind.choices,
+        default=Kind.COMPANY,
+        verbose_name="Kind",
+    )
+
+    history = HistoricalRecords(table_name='"history"."enterprise_history"')
+
+    class Meta:
+        ordering = ["name", "id"]
+        constraints = [models.UniqueConstraint(fields=["code"], name="uq_enterprise_code")]
+        indexes = [
+            models.Index(fields=["name", "active"]),
+            models.Index(fields=["code", "active"]),
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.name} ({self.code})"
+
+
 class EnterpriseCommercialProfile(ModelBase):
     enterprise = models.OneToOneField(
-        "organizations.Enterprise",
+        "enterprise.Enterprise",
         db_column="id_enterprise",
         related_name="commercial_profile",
         on_delete=models.CASCADE,
@@ -54,7 +93,7 @@ class TherapyGroup(ModelBase):
         SCHEDULED = "scheduled", "Scheduled"
 
     enterprise = models.ForeignKey(
-        "organizations.Enterprise",
+        "enterprise.Enterprise",
         db_column="id_enterprise",
         related_name="therapy_groups",
         on_delete=models.CASCADE,

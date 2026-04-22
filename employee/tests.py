@@ -6,7 +6,7 @@ from rest_framework.test import APITestCase
 from datetime import timedelta
 from unittest.mock import patch
 
-from organizations.models import Enterprise
+from enterprise.models import Enterprise
 
 from .models import (
     Article,

@@ -10,9 +10,8 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from employee.models import BurnoutAssessment, EmployeeProfile, EmployeeRecord, Recommendation, RiskTriageDecision, StressInferenceSnapshot, WearableSample
-from organizations.models import Enterprise
 
-from .models import EnterpriseCommercialProfile, TherapyGroup
+from .models import Enterprise, EnterpriseCommercialProfile, TherapyGroup
 from .serializers import (
     EnterpriseCompanySerializer,
     EnterpriseSignupSerializer,

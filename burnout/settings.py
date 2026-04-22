@@ -69,7 +69,6 @@ INSTALLED_APPS = [
     "django_filters",
     "core",
     "accounts",
-    "organizations",
     "employee",
     "enterprise",
 ]
