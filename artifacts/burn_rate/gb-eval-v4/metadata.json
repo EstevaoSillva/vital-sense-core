@@ -1,0 +1,141 @@
+{
+  "version": "gb-eval-v4",
+  "created_at": "2026-02-12T18:02:38.000894+00:00",
+  "feature_order": [
+    "gender",
+    "company_type",
+    "wfh_setup_available",
+    "designation",
+    "resource_allocation",
+    "work_hours_per_week",
+    "sleep_hours",
+    "work_life_balance_score",
+    "manager_support_score",
+    "deadline_pressure_score",
+    "team_size",
+    "recognition_frequency"
+  ],
+  "target": "burn_rate",
+  "artifacts": {
+    "model_mid": "/home/estevaosilva/PycharmProjects/burnout-core/burnout/artifacts/burn_rate/gb-eval-v4/model_mid.joblib",
+    "model_q10": "/home/estevaosilva/PycharmProjects/burnout-core/burnout/artifacts/burn_rate/gb-eval-v4/model_q10.joblib",
+    "model_q90": "/home/estevaosilva/PycharmProjects/burnout-core/burnout/artifacts/burn_rate/gb-eval-v4/model_q90.joblib"
+  },
+  "metrics": {
+    "mae": 0.06170296912295679,
+    "rmse": 0.07776961030025509,
+    "r2": 0.8440114918222091,
+    "medae": 0.050019093419788885,
+    "explained_variance": 0.8440198390310532,
+    "mape_nonzero": 0.24056283649153656,
+    "baseline_rmse_mean": 0.19691632278985835,
+    "baseline_mae_mean": 0.15905136973585188,
+    "improvement_vs_baseline_rmse_pct": 60.506265200143986,
+    "cv_rmse_mean": 0.07856168238666413,
+    "cv_rmse_std": 0.0008581136980407041,
+    "pinball_q10": 0.01208723428899158,
+    "pinball_q90": 0.012768094573157283,
+    "interval_coverage": 0.7923832923832924
+  },
+  "baseline": {
+    "note": "Baseline predictor uses train mean burn_rate.",
+    "rmse": 0.19691632278985835,
+    "mae": 0.15905136973585188
+  },
+  "model_selection": {
+    "model_family": "GradientBoostingRegressor",
+    "mid_search": "fit",
+    "mid_best_params": {}
+  },
+  "feature_stats": {
+    "gender": {
+      "min": 0.0,
+      "max": 1.0,
+      "mean": 0.470942376213294,
+      "std": 0.4991549403740989
+    },
+    "company_type": {
+      "min": 0.0,
+      "max": 1.0,
+      "mean": 0.34260965720604497,
+      "std": 0.47458221626521296
+    },
+    "wfh_setup_available": {
+      "min": 0.0,
+      "max": 1.0,
+      "mean": 0.5431871237252733,
+      "std": 0.4981313806058979
+    },
+    "designation": {
+      "min": 0.0,
+      "max": 5.0,
+      "mean": 2.179813244870377,
+      "std": 1.1356211946521766
+    },
+    "resource_allocation": {
+      "min": 1.0,
+      "max": 10.0,
+      "mean": 4.486914854404718,
+      "std": 2.047277444739908
+    },
+    "work_hours_per_week": {
+      "min": 35.0,
+      "max": 59.0,
+      "mean": 47.77214645533849,
+      "std": 7.594358276142832
+    },
+    "sleep_hours": {
+      "min": 3.4,
+      "max": 8.8,
+      "mean": 6.110259245607569,
+      "std": 0.8885141235273373
+    },
+    "work_life_balance_score": {
+      "min": 1.0,
+      "max": 5.0,
+      "mean": 2.515603882540853,
+      "std": 1.3872308476284796
+    },
+    "manager_support_score": {
+      "min": 1.0,
+      "max": 5.0,
+      "mean": 2.8131834377687674,
+      "std": 1.2734323140049728
+    },
+    "deadline_pressure_score": {
+      "min": 1.0,
+      "max": 5.0,
+      "mean": 3.474259737068436,
+      "std": 1.3894251333267365
+    },
+    "team_size": {
+      "min": 3.0,
+      "max": 19.0,
+      "mean": 11.08416267354712,
+      "std": 4.913708611831096
+    },
+    "recognition_frequency": {
+      "min": 0.0,
+      "max": 5.0,
+      "mean": 1.73024941639022,
+      "std": 1.6956418263605075
+    }
+  },
+  "comparison_to_previous_version": {
+    "status": "compared",
+    "previous_version": "gb-eval-v3",
+    "previous_metadata_path": "/home/estevaosilva/PycharmProjects/burnout-core/burnout/artifacts/burn_rate/gb-eval-v3/metadata.json",
+    "delta_rmse": 0.0,
+    "delta_mae": 0.0,
+    "delta_r2": 0.0,
+    "improved_rmse": false,
+    "improved_mae": false,
+    "improved_r2": false
+  },
+  "data_stats": {
+    "rows_before": 22750,
+    "rows_dropped_missing": 2402,
+    "rows_dropped_out_of_range": 0,
+    "rows_used": 20348
+  }
+}

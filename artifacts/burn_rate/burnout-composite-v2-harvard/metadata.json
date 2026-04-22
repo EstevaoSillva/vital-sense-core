@@ -1,0 +1,162 @@
+{
+  "version": "burnout-composite-v2-harvard",
+  "created_at": "2026-04-18T06:40:53.457613+00:00",
+  "feature_order": [
+    "gender",
+    "company_type",
+    "wfh_setup_available",
+    "designation",
+    "resource_allocation",
+    "work_hours_per_week",
+    "sleep_hours",
+    "team_size",
+    "recognition_frequency",
+    "exhaustion_score",
+    "cynicism_score",
+    "efficacy_score",
+    "work_life_balance_score",
+    "manager_support_score",
+    "deadline_pressure_score"
+  ],
+  "target": "burnout_composite_sdd_v2",
+  "artifacts": {
+    "model_mid": "/home/estevaosilva/PycharmProjects/burnout-core/burnout/artifacts/burn_rate/burnout-composite-v2-harvard/model_mid.joblib",
+    "model_q10": "/home/estevaosilva/PycharmProjects/burnout-core/burnout/artifacts/burn_rate/burnout-composite-v2-harvard/model_q10.joblib",
+    "model_q90": "/home/estevaosilva/PycharmProjects/burnout-core/burnout/artifacts/burn_rate/burnout-composite-v2-harvard/model_q90.joblib"
+  },
+  "metrics": {
+    "mae": 0.003226898701996634,
+    "rmse": 0.004306993901455648,
+    "r2": 0.9996545422896691,
+    "medae": 0.0025228572864302717,
+    "explained_variance": 0.9996545609314864,
+    "mape_nonzero": 0.00812141867830568,
+    "baseline_rmse_mean": 0.23181371012753618,
+    "baseline_mae_mean": 0.2141260599263015,
+    "improvement_vs_baseline_rmse_pct": 98.14204522282738,
+    "cv_rmse_mean": 0.004644030448208557,
+    "cv_rmse_std": 0.00012450238591042113,
+    "pinball_q10": 0.0019623250057143526,
+    "pinball_q90": 0.0023720488187463883,
+    "interval_coverage": 0.8313609467455622
+  },
+  "baseline": {
+    "note": "Baseline predictor uses train mean target.",
+    "rmse": 0.23181371012753618,
+    "mae": 0.2141260599263015
+  },
+  "model_selection": {
+    "model_family": "GradientBoostingRegressor",
+    "mid_search": "fit",
+    "mid_best_params": {}
+  },
+  "feature_stats": {
+    "gender": {
+      "min": 0.0,
+      "max": 1.0,
+      "mean": 0.4760623991393222,
+      "std": 0.4994266625492023
+    },
+    "company_type": {
+      "min": 0.0,
+      "max": 1.0,
+      "mean": 0.34575040344271113,
+      "std": 0.4756123021557723
+    },
+    "wfh_setup_available": {
+      "min": 0.0,
+      "max": 1.0,
+      "mean": 0.5400753093060785,
+      "std": 0.4983913819319333
+    },
+    "designation": {
+      "min": 0.0,
+      "max": 5.0,
+      "mean": 2.17926304464766,
+      "std": 1.134039937129848
+    },
+    "resource_allocation": {
+      "min": 1.0,
+      "max": 10.0,
+      "mean": 4.486148466917697,
+      "std": 2.046283097424533
+    },
+    "work_hours_per_week": {
+      "min": 35.0,
+      "max": 59.0,
+      "mean": 47.72303657880581,
+      "std": 7.59370451645464
+    },
+    "sleep_hours": {
+      "min": 3.4,
+      "max": 9.1,
+      "mean": 6.112863098440021,
+      "std": 0.8868787284925015
+    },
+    "team_size": {
+      "min": 3.0,
+      "max": 19.0,
+      "mean": 11.06152501344809,
+      "std": 4.902839637640515
+    },
+    "recognition_frequency": {
+      "min": 0.0,
+      "max": 5.0,
+      "mean": 1.7461000537923614,
+      "std": 1.6992323719217979
+    },
+    "exhaustion_score": {
+      "min": 1.0,
+      "max": 5.0,
+      "mean": 3.2906670252824095,
+      "std": 0.7694188836028619
+    },
+    "cynicism_score": {
+      "min": 1.0,
+      "max": 5.0,
+      "mean": 2.549399318630088,
+      "std": 0.9094591544109036
+    },
+    "efficacy_score": {
+      "min": 1.0,
+      "max": 5.0,
+      "mean": 2.3968800430338892,
+      "std": 1.3593858975374384
+    },
+    "work_life_balance_score": {
+      "min": 1.0,
+      "max": 5.0,
+      "mean": 2.5272323830016137,
+      "std": 1.3887121523064863
+    },
+    "manager_support_score": {
+      "min": 1.0,
+      "max": 5.0,
+      "mean": 2.8209386767079074,
+      "std": 1.2767355920179033
+    },
+    "deadline_pressure_score": {
+      "min": 1.0,
+      "max": 5.0,
+      "mean": 3.4722296933835395,
+      "std": 1.3914103583508144
+    }
+  },
+  "comparison_to_previous_version": {
+    "status": "compared",
+    "previous_version": "gb-eval-v4",
+    "previous_metadata_path": "/home/estevaosilva/PycharmProjects/burnout-core/burnout/artifacts/burn_rate/gb-eval-v4/metadata.json",
+    "delta_rmse": -0.07346261639879945,
+    "delta_mae": -0.058476070420960154,
+    "delta_r2": 0.15564305046745996,
+    "improved_rmse": true,
+    "improved_mae": true,
+    "improved_r2": true
+  },
+  "data_stats": {
+    "rows_before": 22750,
+    "rows_dropped_missing": 3296,
+    "rows_dropped_out_of_range": 864,
+    "rows_used": 18590
+  }
+}

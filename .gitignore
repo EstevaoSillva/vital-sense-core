@@ -140,8 +140,6 @@ cython_debug/
 *.h5
 *.pkl
 *.model
-burnout/ml/stress/dataset/
-burnout/artifacts/
-burnout/employee/artifacts/
-burnout/ml/stress/wesad/artifacts_wesad_mlp/
-burnout/ml/stress/wesad/artifacts_wesad_mlp_fixed/
+ml/stress/dataset/
+ml/stress/wesad/artifacts_wesad_mlp/
+ml/stress/wesad/artifacts_wesad_mlp_fixed/
